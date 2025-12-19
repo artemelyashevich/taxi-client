@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Header } from "@/components/Header";
 import { useLocation } from "@/hook/useLocation";
-
 import dynamic from 'next/dynamic';
+import { CURRENT_USER } from "@/graphql/queries";
+import {useQuery} from "@apollo/client/react";
 
 const MapComponent = dynamic(() => import("@/components/map/MapComponent"), {
     ssr: false,
@@ -15,11 +16,31 @@ export default function DashboardPage() {
     const { location, getLocation, error, loading } = useLocation();
     const [taxis, setTaxis] = useState([]);
     const [wsStatus, setWsStatus] = useState("Connecting...");
+    const { data, loading: load, error: err } = useQuery(CURRENT_USER);
+
+    const socketRef = useRef<WebSocket | null>(null);
+
+    const sendLocation = (lat: number, lng: number) => {
+        if (socketRef.current?.readyState === WebSocket.OPEN) {
+            const payload = JSON.stringify({ latitude:lat, longitude: lng });
+            socketRef.current.send(payload);
+            console.log("WS: Sent location", payload);
+        }
+    };
 
     useEffect(() => {
         const socket = new WebSocket("ws://localhost:8080/taxi-ws");
+        socketRef.current = socket;
 
-        socket.onopen = () => setWsStatus("Connected");
+        socket.onopen = () => {
+            setWsStatus("Connected");
+            console.log("WS: Connected");
+
+            if (location) {
+                sendLocation(location.lat, location.lng);
+            }
+        };
+
         socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
@@ -28,14 +49,26 @@ export default function DashboardPage() {
                 console.error("WS Parse Error:", err);
             }
         };
+
         socket.onclose = () => setWsStatus("Disconnected");
         socket.onerror = () => setWsStatus("Error");
 
-        return () => socket.close();
+        return () => {
+            socket.close();
+        };
     }, []);
 
+    useEffect(() => {
+        if (wsStatus === "Connected" && location) {
+            sendLocation(location.lat, location.lng);
+        }
+    }, [location, wsStatus]);
+
+    if (load) return <p>Загрузка профиля...</p>;
+    if (err) return <p>Ошибка: {err.message}</p>;
+
     return (
-        <>
+        <div className="container mx-auto px-4">
             <Header />
 
             <div className="absolute top-20 right-4 z-[1000] bg-white p-2 rounded shadow text-xs">
@@ -47,6 +80,8 @@ export default function DashboardPage() {
             </div>
 
             <div className="p-4 flex flex-col gap-2 items-center">
+                <p className="mb-2">Вы вошли как: <strong>{data?.findCurrentUser?.email}</strong></p>
+
                 {error && <p className="text-red-500">{error}</p>}
 
                 <button
@@ -57,17 +92,11 @@ export default function DashboardPage() {
                     {loading ? "Поиск..." : (location ? "Обновить местоположение" : "Найти меня")}
                 </button>
 
+                {/* Список такси для отладки */}
                 <div className="mt-4 w-full max-w-md">
-                    <h3 className="font-bold mb-2">Такси поблизости ({taxis.length}):</h3>
-                    <div className="max-h-40 overflow-y-auto border rounded p-2">
-                        {taxis.map((t: any) => (
-                            <div key={t.id} className="text-sm border-b last:border-0 py-1">
-                                {t.driverName} - {t.licensePlate}
-                            </div>
-                        ))}
-                    </div>
+                    <h3 className="font-bold mb-2 text-center">Такси в эфире: {taxis.length}</h3>
                 </div>
             </div>
-        </>
+        </div>
     );
 }

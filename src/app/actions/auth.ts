@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import {client} from "@/lib/apolloClient";
 
 export async function registerAction(prevState: any, formData: FormData) {
     const email = formData.get("email");
@@ -43,7 +44,6 @@ export async function registerAction(prevState: any, formData: FormData) {
     }
 
     cookieStore.set("session_token", data.accessToken, {
-        httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
@@ -90,7 +90,6 @@ export async function loginAction(prevState: any, formData: FormData) {
     }
 
     cookieStore.set("session_token", data.accessToken, {
-        httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
@@ -103,5 +102,6 @@ export async function logoutAction() {
     const cookieStore = await cookies();
 
     cookieStore.delete("session_token");
+    client.resetStore()
     redirect("/login");
 }

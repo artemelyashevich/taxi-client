@@ -1,7 +1,7 @@
 // app/providers/ApolloProviderWrapper.tsx
 "use client";
 
-import { ReactNode } from "react";
+import {ReactNode} from "react";
 import {ApolloProvider} from "@apollo/client/react";
 import {client} from "@/lib/apolloClient";
 
