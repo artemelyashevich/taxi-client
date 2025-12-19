@@ -3,6 +3,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.taxi-move-smooth {
+  transition: transform 2000ms linear !important;
+}
+
+.leaflet-marker-icon.taxi-move-smooth {
+  transition: transform 2000ms linear !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -1,22 +1,49 @@
-"use client"; // Важно, так как мы используем хуки
+"use client";
 
-import MapComponent from "@/components/map/MapComponent";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { useLocation } from "@/hook/useLocation";
-import {useQuery} from "@apollo/client/react";
-import {CURRENT_USER} from "@/graphql/queries";
+
+import dynamic from 'next/dynamic';
+
+const MapComponent = dynamic(() => import("@/components/map/MapComponent"), {
+    ssr: false,
+    loading: () => <div className="h-[500px] w-full bg-gray-100 animate-pulse" />
+});
 
 export default function DashboardPage() {
     const { location, getLocation, error, loading } = useLocation();
-    const { data, loading: load, error: err } = useQuery(CURRENT_USER);
-    if (load) return <p>Loading...</p>;
-    if (err) return <p>Error: {err.message}</p>;
+    const [taxis, setTaxis] = useState([]);
+    const [wsStatus, setWsStatus] = useState("Connecting...");
+
+    useEffect(() => {
+        const socket = new WebSocket("ws://localhost:8080/taxi-ws");
+
+        socket.onopen = () => setWsStatus("Connected");
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                setTaxis(data);
+            } catch (err) {
+                console.error("WS Parse Error:", err);
+            }
+        };
+        socket.onclose = () => setWsStatus("Disconnected");
+        socket.onerror = () => setWsStatus("Error");
+
+        return () => socket.close();
+    }, []);
+
     return (
         <>
-            <Header/>
-            {data}
+            <Header />
+
+            <div className="absolute top-20 right-4 z-[1000] bg-white p-2 rounded shadow text-xs">
+                WS: <span className={wsStatus === "Connected" ? "text-green-600" : "text-red-600"}>{wsStatus}</span>
+            </div>
+
             <div className="h-[500px] w-full relative">
-                <MapComponent location={location} />
+                <MapComponent userLocation={location} taxis={taxis} />
             </div>
 
             <div className="p-4 flex flex-col gap-2 items-center">
@@ -30,12 +57,17 @@ export default function DashboardPage() {
                     {loading ? "Поиск..." : (location ? "Обновить местоположение" : "Найти меня")}
                 </button>
 
-                {location && (
-                    <p className="text-sm text-gray-500">
-                        Координаты: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-                    </p>
-                )}
+                <div className="mt-4 w-full max-w-md">
+                    <h3 className="font-bold mb-2">Такси поблизости ({taxis.length}):</h3>
+                    <div className="max-h-40 overflow-y-auto border rounded p-2">
+                        {taxis.map((t: any) => (
+                            <div key={t.id} className="text-sm border-b last:border-0 py-1">
+                                {t.driverName} - {t.licensePlate}
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </>
-    )
+    );
 }

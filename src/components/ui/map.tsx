@@ -490,7 +490,7 @@ function MapLayersControl({
 }
 
 function MapMarker({
-    icon = <MapPinIcon className="size-6" />,
+    icon = <MapPinIcon className="size-6 red" />,
     iconAnchor = [12, 12],
     bgPos,
     popupAnchor,
