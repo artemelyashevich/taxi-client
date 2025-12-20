@@ -22,6 +22,11 @@ export function Header() {
                  Register new car
                 </Link>
             }
+            {
+                user?.role === 'ROLE_USER' && <Link href={"/order"}>
+                    Place order
+                </Link>
+            }
             <div>
                 <p>{user?.role}</p>
                 <p className="mb-2">Вы вошли как: <strong>{user?.email}</strong></p>
