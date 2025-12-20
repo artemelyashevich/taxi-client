@@ -1,13 +1,15 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { registerAction } from "@/app/actions/auth";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {cn} from "@/lib/utils";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Field, FieldDescription, FieldGroup, FieldLabel} from "@/components/ui/field";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
 import Link from "next/link";
-import { useActionState } from "react";
+import {useActionState, useState} from "react";
+import {useMutation} from "@apollo/client/react";
+import {LOGIN_USER, REGISTER_USER} from "@/graphql/queries";
+import {useRouter} from "next/navigation";
 
 const initialState = {
     error: "",
@@ -18,7 +20,23 @@ export function RegisterForm({
                                  ...props
                              }: React.ComponentProps<"div">) {
 
-    const [state, action, isPending] = useActionState(registerAction, initialState);
+    const router = useRouter();
+    const [formData, setFormData] = useState({email: "", password: "", isDriver: false});
+
+
+    const [register, {loading, error}] = useMutation(REGISTER_USER, {
+        onCompleted: data => {
+            console.log(data);
+            document.cookie = `session_token=${data.register.accessToken}`;
+            document.cookie = `refresh_token=${data.register.refreshToken}`;
+            router.push("/dashboard");
+        }
+    });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        await register({variables: {...formData}});
+    };
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -30,7 +48,7 @@ export function RegisterForm({
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form action={action}>
+                    <form onSubmit={handleSubmit}>
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -39,6 +57,7 @@ export function RegisterForm({
                                     id="email"
                                     type="email"
                                     placeholder="m@example.com"
+                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
                                     required
                                 />
                             </Field>
@@ -46,7 +65,13 @@ export function RegisterForm({
                                 <div className="flex items-center">
                                     <FieldLabel htmlFor="password">Password</FieldLabel>
                                 </div>
-                                <Input name="password" id="password" type="password" required />
+                                <Input
+                                    name="password"
+                                    id="password"
+                                    type="password"
+                                    required
+                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                />
                             </Field>
                             <Field>
                                 <div className="flex items-center gap-2"> {/* Добавил gap */}
@@ -55,20 +80,21 @@ export function RegisterForm({
                                         id="isDriver"
                                         type="checkbox"
                                         className="w-4 h-4"
+                                        onChange={(e) => setFormData({...formData, isDriver: e.target.value === 'on' ? true : false})}
                                     />
                                     <FieldLabel htmlFor="isDriver" className="m-0">Register as driver</FieldLabel>
                                 </div>
                             </Field>
 
-                            {state?.error && (
+                            {error && (
                                 <p className="text-sm text-red-500 font-medium text-center">
-                                    {state.error}
+                                    {error.message}
                                 </p>
                             )}
 
                             <Field>
-                                <Button type="submit" disabled={isPending}>
-                                    {isPending ? "Registering..." : "Register"}
+                                <Button type="submit" disabled={loading}>
+                                    {loading ? "Registering..." : "Register"}
                                 </Button>
                                 <FieldDescription className="text-center">
                                     Already registered here? <Link href="/login">Sign in</Link>

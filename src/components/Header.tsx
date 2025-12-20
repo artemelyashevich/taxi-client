@@ -1,11 +1,31 @@
-import {logoutAction} from "@/app/actions/auth";
+'use client'
+
+import {logoutAction} from "@/actions/auth";
+import {Button} from "@/components/ui/button";
+import {useQuery} from "@apollo/client/react";
+import {CURRENT_USER} from "@/graphql/queries";
+import Link from "next/link";
 
 export function Header() {
+    const { data, loading: load, error: err } = useQuery(CURRENT_USER);
+    if (load) return <p>Загрузка профиля...</p>;
+    if (err) return <p>Ошибка: {err.message}</p>;
+    const user = data?.findCurrentUser;
     return (
-        <header>
+        <header className="py-5 flex items-center justify-between">
+            <Link href={"/dashboard"}>Home</Link>
             <form action={logoutAction}>
-                <button className="btn btn-lg btn-primary" type={"submit"}>Logout</button>
+                <Button className="btn btn-lg btn-primary" type={"submit"}>Logout</Button>
             </form>
+            {
+                user?.role === 'ROLE_DRIVER' && <Link href={"/taxi"}>
+                 Register new car
+                </Link>
+            }
+            <div>
+                <p>{user?.role}</p>
+                <p className="mb-2">Вы вошли как: <strong>{user?.email}</strong></p>
+            </div>
         </header>
     )
 }

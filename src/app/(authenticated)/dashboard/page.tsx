@@ -16,7 +16,6 @@ export default function DashboardPage() {
     const { location, getLocation, error, loading } = useLocation();
     const [taxis, setTaxis] = useState([]);
     const [wsStatus, setWsStatus] = useState("Connecting...");
-    const { data, loading: load, error: err } = useQuery(CURRENT_USER);
 
     const socketRef = useRef<WebSocket | null>(null);
 
@@ -64,12 +63,8 @@ export default function DashboardPage() {
         }
     }, [location, wsStatus]);
 
-    if (load) return <p>Загрузка профиля...</p>;
-    if (err) return <p>Ошибка: {err.message}</p>;
-
     return (
-        <div className="container mx-auto px-4">
-            <Header />
+        <div>
 
             <div className="absolute top-20 right-4 z-[1000] bg-white p-2 rounded shadow text-xs">
                 WS: <span className={wsStatus === "Connected" ? "text-green-600" : "text-red-600"}>{wsStatus}</span>
@@ -80,8 +75,6 @@ export default function DashboardPage() {
             </div>
 
             <div className="p-4 flex flex-col gap-2 items-center">
-                <p className="mb-2">Вы вошли как: <strong>{data?.findCurrentUser?.email}</strong></p>
-
                 {error && <p className="text-red-500">{error}</p>}
 
                 <button

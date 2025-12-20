@@ -16,20 +16,36 @@ import {
     FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { loginAction } from "@/app/actions/auth";
 import Link from "next/link";
-import { useActionState } from "react"; // Если React 18 / Next 14: import { useFormState } from "react-dom"
+import { useState} from "react";
+import {useMutation} from "@apollo/client/react";
+import {LOGIN_USER} from "@/graphql/queries"; // Если React 18 / Next 14: import { useFormState } from "react-dom"
+import { useRouter } from "next/navigation";
 
-const initialState = {
-    error: "",
-};
 
 export function LoginForm({
                               className,
                               ...props
                           }: React.ComponentProps<"div">) {
 
-    const [state, action, isPending] = useActionState(loginAction, initialState);
+    const [formData, setFormData] = useState({ email: "", password: "" });
+
+    const router = useRouter();
+
+
+    const [login, {loading, error}] = useMutation(LOGIN_USER, {
+        onCompleted: data => {
+            console.log(data);
+            document.cookie = `session_token=${data.login.accessToken}`;
+            document.cookie = `refresh_token=${data.login.refreshToken}`;
+            router.push("/dashboard");
+        }
+    });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        await login({ variables: { ...formData } });
+    };
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -41,7 +57,7 @@ export function LoginForm({
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form action={action}>
+                    <form onSubmit={handleSubmit}>
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -51,6 +67,7 @@ export function LoginForm({
                                     type="email"
                                     placeholder="m@example.com"
                                     required
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 />
                             </Field>
                             <Field>
@@ -62,24 +79,26 @@ export function LoginForm({
                                     id="password"
                                     type="password"
                                     required
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 />
                             </Field>
 
-                            {state?.error && (
+                            {error && (
                                 <p className="text-sm text-red-500 font-medium text-center">
-                                    {state.error}
+                                    {error.message}
                                 </p>
                             )}
 
                             <Field>
-                                <Button type="submit" disabled={isPending}>
-                                    {isPending ? "Logging in..." : "Login"}
+                                <Button type="submit" disabled={loading}>
+                                    {loading ? "Logging in..." : "Login"}
                                 </Button>
                                 <FieldDescription className="text-center">
                                     Don&apos;t have an account? <Link href="/register">Sign up</Link>
                                 </FieldDescription>
                             </Field>
                         </FieldGroup>
+                        {error && <p className="text-red-500">Error: {error.message}</p>}
                     </form>
                 </CardContent>
             </Card>
