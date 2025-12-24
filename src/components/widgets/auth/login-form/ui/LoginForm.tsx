@@ -2,59 +2,31 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import {
-    Field,
-    FieldDescription,
-    FieldGroup,
-    FieldLabel,
-} from "@/components/ui/field"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import Link from "next/link";
-import { useState} from "react";
-import {useMutation} from "@apollo/client/react";
-import {LOGIN_USER} from "@/graphql/queries"; // Если React 18 / Next 14: import { useFormState } from "react-dom"
-import { useRouter } from "next/navigation";
+import Link from "next/link"
+import { useState } from "react"
+import {useLogin} from "@/components/features/auth/login";
 
 
-export function LoginForm({
-                              className,
-                              ...props
-                          }: React.ComponentProps<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+    const [formData, setFormData] = useState({ email: "", password: "" })
+    const { submit, loading, error } = useLogin()
 
-    const [formData, setFormData] = useState({ email: "", password: "" });
-
-    const router = useRouter();
-
-
-    const [login, {loading, error}] = useMutation(LOGIN_USER, {
-        onCompleted: data => {
-            document.cookie = `session_token=${data.login.accessToken}`;
-            document.cookie = `refresh_token=${data.login.refreshToken}`;
-            router.push("/dashboard");
-        }
-    });
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        await login({ variables: { ...formData } });
-    };
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        await submit(formData)
+    }
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Card>
                 <CardHeader>
                     <CardTitle>Login to your account</CardTitle>
-                    <CardDescription>
-                        Enter your email below to login to your account
-                    </CardDescription>
+                    <CardDescription>Enter your email below to login to your account</CardDescription>
                 </CardHeader>
+
                 <CardContent>
                     <form onSubmit={handleSubmit}>
                         <FieldGroup>
@@ -66,9 +38,11 @@ export function LoginForm({
                                     type="email"
                                     placeholder="m@example.com"
                                     required
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    value={formData.email}
+                                    onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
                                 />
                             </Field>
+
                             <Field>
                                 <div className="flex items-center">
                                     <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -78,7 +52,8 @@ export function LoginForm({
                                     id="password"
                                     type="password"
                                     required
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    value={formData.password}
+                                    onChange={(e) => setFormData((p) => ({ ...p, password: e.target.value }))}
                                 />
                             </Field>
 
@@ -97,7 +72,6 @@ export function LoginForm({
                                 </FieldDescription>
                             </Field>
                         </FieldGroup>
-                        {error && <p className="text-red-500">Error: {error.message}</p>}
                     </form>
                 </CardContent>
             </Card>

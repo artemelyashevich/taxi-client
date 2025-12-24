@@ -1,39 +1,26 @@
 "use client";
 
-import {cn} from "@/lib/utils";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {Field, FieldDescription, FieldGroup, FieldLabel} from "@/components/ui/field";
-import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import {useActionState, useState} from "react";
-import {useMutation} from "@apollo/client/react";
-import {LOGIN_USER, REGISTER_USER} from "@/graphql/queries";
-import {useRouter} from "next/navigation";
+import { useState } from "react";
+import {useRegister} from "@/components/features/auth/register";
 
-const initialState = {
-    error: "",
-};
 
 export function RegisterForm({
                                  className,
                                  ...props
                              }: React.ComponentProps<"div">) {
+    const [formData, setFormData] = useState({ email: "", password: "", isDriver: false });
 
-    const router = useRouter();
-    const [formData, setFormData] = useState({email: "", password: "", isDriver: false});
+    const { submit, loading, error } = useRegister();
 
-    const [register, {loading, error}] = useMutation(REGISTER_USER, {
-        onCompleted: data => {
-            document.cookie = `session_token=${data.register.accessToken}`;
-            document.cookie = `refresh_token=${data.register.refreshToken}`;
-            router.push("/dashboard");
-        }
-    });
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        await register({variables: {...formData}});
+        await submit(formData);
     };
 
     return (
@@ -45,6 +32,7 @@ export function RegisterForm({
                         Enter your email below to login to your account
                     </CardDescription>
                 </CardHeader>
+
                 <CardContent>
                     <form onSubmit={handleSubmit}>
                         <FieldGroup>
@@ -55,32 +43,35 @@ export function RegisterForm({
                                     id="email"
                                     type="email"
                                     placeholder="m@example.com"
-                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     required
                                 />
                             </Field>
+
                             <Field>
-                                <div className="flex items-center">
-                                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                                </div>
+                                <FieldLabel htmlFor="password">Password</FieldLabel>
                                 <Input
                                     name="password"
                                     id="password"
                                     type="password"
                                     required
-                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 />
                             </Field>
+
                             <Field>
-                                <div className="flex items-center gap-2"> {/* Добавил gap */}
+                                <div className="flex items-center gap-2">
                                     <Input
                                         name="isDriver"
                                         id="isDriver"
                                         type="checkbox"
                                         className="w-4 h-4"
-                                        onChange={(e) => setFormData({...formData, isDriver: e.target.value === 'on' ? true : false})}
+                                        checked={formData.isDriver}
+                                        onChange={(e) => setFormData({ ...formData, isDriver: e.target.checked })}
                                     />
-                                    <FieldLabel htmlFor="isDriver" className="m-0">Register as driver</FieldLabel>
+                                    <FieldLabel htmlFor="isDriver" className="m-0">
+                                        Register as driver
+                                    </FieldLabel>
                                 </div>
                             </Field>
 
@@ -94,6 +85,7 @@ export function RegisterForm({
                                 <Button type="submit" disabled={loading}>
                                     {loading ? "Registering..." : "Register"}
                                 </Button>
+
                                 <FieldDescription className="text-center">
                                     Already registered here? <Link href="/login">Sign in</Link>
                                 </FieldDescription>
@@ -103,5 +95,5 @@ export function RegisterForm({
                 </CardContent>
             </Card>
         </div>
-    )
+    );
 }

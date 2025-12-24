@@ -1,0 +1,1 @@
+export { RegisterForm } from "@/components/widgets/auth/register-form/ui/RegisterForm";

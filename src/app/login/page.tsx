@@ -1,4 +1,4 @@
-import {LoginForm} from "@/app/login/login-page";
+import {LoginForm} from "@/components/widgets/auth/login-form";
 
 export default function AuthPage() {
 
