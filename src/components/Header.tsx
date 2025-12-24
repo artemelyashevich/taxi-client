@@ -14,6 +14,13 @@ export function Header() {
     if (err) return <p>Ошибка: {err.message}</p>;
     const user = data?.findCurrentUser;
 
+    if (user != null) {
+        // eslint-disable-next-line react-hooks/immutability
+        document.cookie = `role=${user?.role}`;
+        // eslint-disable-next-line react-hooks/immutability
+        document.cookie = `id=${user?.id}`;
+    }
+
     return (
         <header className="py-5 flex items-center justify-between">
             <Link href={"/dashboard"}>Home</Link>
@@ -21,16 +28,12 @@ export function Header() {
                 <Button className="btn btn-lg btn-primary" type={"submit"}>Logout</Button>
             </form>
             {
-                user?.role === 'ROLE_DRIVER' && <><Link href={"/taxi"}>
+                user?.role === 'ROLE_DRIVER' ? <><Link href={"/taxi"}>
                  Register new car
                 </Link>
-                <Notifications userId={user?.id} /></>
+                </> : <Link href={"/order"}>Place order</Link>
             }
-            {
-                user?.role === 'ROLE_USER' && <Link href={"/order"}>
-                    Place order
-                </Link>
-            }
+
             <div>
                 <p>{user?.role}</p>
                 <p className="mb-2">Вы вошли как: <strong>{user?.email}</strong></p>

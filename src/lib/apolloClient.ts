@@ -7,7 +7,6 @@ const httpLink = new HttpLink({
 
 const authLink = new ApolloLink((operation, forward) => {
     const token = Cookies.get("session_token");
-    console.log(token);
     operation.setContext(({ headers = {} }) => ({
         headers: {
             ...headers,

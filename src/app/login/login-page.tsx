@@ -35,7 +35,6 @@ export function LoginForm({
 
     const [login, {loading, error}] = useMutation(LOGIN_USER, {
         onCompleted: data => {
-            console.log(data);
             document.cookie = `session_token=${data.login.accessToken}`;
             document.cookie = `refresh_token=${data.login.refreshToken}`;
             router.push("/dashboard");

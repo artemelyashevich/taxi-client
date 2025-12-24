@@ -4,8 +4,10 @@ import { useEffect, useState, useRef } from "react";
 import { Header } from "@/components/Header";
 import { useLocation } from "@/hook/useLocation";
 import dynamic from 'next/dynamic';
-import { CURRENT_USER } from "@/graphql/queries";
-import {useQuery} from "@apollo/client/react";
+import {APPROVE_ORDER, BOOK_CAR, CURRENT_USER} from "@/graphql/queries";
+import {useMutation, useQuery} from "@apollo/client/react";
+import Cookies from "js-cookie";
+import Notifications from "@/components/Notifications";
 
 const MapComponent = dynamic(() => import("@/components/map/MapComponent"), {
     ssr: false,
@@ -16,6 +18,10 @@ export default function DashboardPage() {
     const { location, getLocation, error, loading } = useLocation();
     const [taxis, setTaxis] = useState([]);
     const [wsStatus, setWsStatus] = useState("Connecting...");
+    const [role, setRole] = useState("");
+
+    const [approveOrder] = useMutation(APPROVE_ORDER);
+
 
     const socketRef = useRef<WebSocket | null>(null);
 
@@ -61,6 +67,8 @@ export default function DashboardPage() {
         if (wsStatus === "Connected" && location) {
             sendLocation(location.lat, location.lng);
         }
+        setRole(Cookies.get("role"))
+        console.log(role)
     }, [location, wsStatus]);
 
     return (
@@ -90,6 +98,7 @@ export default function DashboardPage() {
                     <h3 className="font-bold mb-2 text-center">Такси в эфире: {taxis.length}</h3>
                 </div>
             </div>
+             <Notifications />
         </div>
     );
 }

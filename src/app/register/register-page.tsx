@@ -23,10 +23,8 @@ export function RegisterForm({
     const router = useRouter();
     const [formData, setFormData] = useState({email: "", password: "", isDriver: false});
 
-
     const [register, {loading, error}] = useMutation(REGISTER_USER, {
         onCompleted: data => {
-            console.log(data);
             document.cookie = `session_token=${data.register.accessToken}`;
             document.cookie = `refresh_token=${data.register.refreshToken}`;
             router.push("/dashboard");

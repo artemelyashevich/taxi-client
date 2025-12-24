@@ -40,4 +40,17 @@ export const CREATE_TAXI = gql`
  }
  }
 `
+export const BOOK_CAR = gql`
+  mutation BOOK_CAR($input: OrderInput!) {
+    placeOrder(input: $input) {
+      id
+      orderStatus
+    }
+  }
+`;
 
+export const APPROVE_ORDER = gql`
+  mutation APPROVE_ORDER($input: OrderApprovement!) {
+    approveOrder(input: $input)
+  }
+`;
