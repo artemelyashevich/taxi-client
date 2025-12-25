@@ -1,7 +1,7 @@
-import {OrderTaxiForm} from "@/app/(authenticated)/order/OrderTaxiFrom";
+import {OrderTaxiCard} from "@/widgets/order-taxi-card";
 
 export default function OrderPage() {
     return (
-        <><OrderTaxiForm/></>
+        <div className="mt-10"><OrderTaxiCard /></div>
     )
 }

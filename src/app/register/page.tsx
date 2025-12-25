@@ -1,8 +1,9 @@
-import {RegisterForm} from "@/components/widgets/auth/register-form";
-
+import { RegisterCard } from "@/widgets/auth-register-card"
 
 export default function RegisterPage() {
     return (
-        <div className={"m-auto"}><RegisterForm /></div>
+        <div>
+            <RegisterCard />
+        </div>
     )
 }

@@ -3,7 +3,7 @@
 
 import {ReactNode} from "react";
 import {ApolloProvider} from "@apollo/client/react";
-import {client} from "@/lib/apolloClient";
+import {client} from "@/shared/lib/apolloClient";
 
 export default function ApolloProviderWrapper({
                                                   children,

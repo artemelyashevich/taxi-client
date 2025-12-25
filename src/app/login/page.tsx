@@ -1,8 +1,9 @@
-import {LoginForm} from "@/components/widgets/auth/login-form";
+import { LoginCard } from "@/widgets/auth-login-card"
 
-export default function AuthPage() {
-
+export default function LoginPage() {
     return (
-       <div><LoginForm/></div>
-    );
+        <div>
+            <LoginCard />
+        </div>
+    )
 }
