@@ -1,8 +1,9 @@
-import {LoginForm} from "@/app/login/login-page";
+import { LoginCard } from "@/widgets/auth-login-card"
 
-export default function AuthPage() {
-
+export default function LoginPage() {
     return (
-       <div><LoginForm/></div>
-    );
+        <div>
+            <LoginCard />
+        </div>
+    )
 }
