@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { useLocation } from "@/shared/hook/useLocation";
 import {BOOK_CAR} from "@/features/order-taxi/api/order-taxi.gql";
 import {useMutation} from "@apollo/client/react";
+import {useRouter} from "next/navigation";
 
 export function OrderTaxiForm() {
     const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ export function OrderTaxiForm() {
 
     const { loading: locationLoading, location, getLocation } = useLocation();
     const [bookTaxi, { loading, error, data }] = useMutation(BOOK_CAR);
+    const router = useRouter();
 
     useEffect(() => {
         getLocation();
@@ -42,6 +44,7 @@ export function OrderTaxiForm() {
                 }
             }
         });
+        router.push("/dashboard")
     };
 
     if (locationLoading) {

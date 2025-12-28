@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { useLocation } from "@/shared/hook/useLocation";
 import {useMutation} from "@apollo/client/react";
 import {CREATE_TAXI} from "@/features/register-car/api/register-car.gql";
+import {useRouter} from "next/navigation";
 
 
 export function RegisterCarForm() {
@@ -18,6 +19,7 @@ export function RegisterCarForm() {
 
     const { loading: locationLoading, location, getLocation } = useLocation();
     const [createTaxi, { loading, error }] = useMutation(CREATE_TAXI);
+    const router = useRouter();
 
     useEffect(() => {
         getLocation();
@@ -32,6 +34,7 @@ export function RegisterCarForm() {
                 longitude: location?.lng || 0
             }
         });
+        router.push("/dashboard");
     };
 
     if (locationLoading) return <span>Fetching your location...</span>;
